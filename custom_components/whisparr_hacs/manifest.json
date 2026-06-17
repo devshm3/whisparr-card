@@ -1,0 +1,11 @@
+{
+  "domain": "whisparr_hacs",
+  "name": "Whisparr Card",
+  "version": "0.1.0",
+  "homeassistant": "2024.1.0",
+  "codeowners": ["@devshm3"],
+  "config_flow": true,
+  "documentation": "https://github.com/devshm3/whisparr-card",
+  "iot_class": "local_polling",
+  "requirements": []
+}
