@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+node_modules/
+dist/
+*.egg-info/
+.homeassistant/
+.superpowers/
+.venv/
+venv/
+dev/ha-config/
