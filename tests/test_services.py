@@ -39,6 +39,12 @@ async def test_add_parent_studio(hass_with_coord):
     }, blocking=True)
     coord.api.add_parent.assert_awaited_once()
     assert coord.api.add_parent.call_args.args[0] == "studio"
+    payload = coord.api.add_parent.call_args.args[1]
+    assert payload["foreignId"] == "studio-vixen"
+    assert payload["qualityProfileId"] == 1
+    assert payload["rootFolderPath"] == "/scenes"
+    assert payload["monitored"] is True
+    assert payload["addOptions"]["searchForMissing"] is True
 
 
 async def test_set_monitored_scene_uses_synchronous_refresh(hass_with_coord):
@@ -56,6 +62,7 @@ async def test_set_monitored_parent(hass_with_coord):
         "entry_id": "test_entry_id", "kind": "performer", "item_id": 20, "monitored": True,
     }, blocking=True)
     coord.api.toggle_parent_monitored.assert_awaited_once_with("performer", 20, True)
+    coord.async_refresh.assert_awaited()
 
 
 async def test_trigger_search_scene_and_parent(hass_with_coord):
@@ -68,6 +75,7 @@ async def test_trigger_search_scene_and_parent(hass_with_coord):
         "entry_id": "test_entry_id", "kind": "studio", "item_id": 10,
     }, blocking=True)
     coord.api.trigger_parent_search.assert_awaited_once_with("studio", 10)
+    coord.async_request_refresh.assert_awaited()
 
 
 async def test_delete_scene(hass_with_coord):
@@ -76,4 +84,13 @@ async def test_delete_scene(hass_with_coord):
         "entry_id": "test_entry_id", "kind": "scene", "item_id": 1, "delete_files": True,
     }, blocking=True)
     coord.api.delete_scene.assert_awaited_once_with(1, delete_files=True)
+    coord.async_request_refresh.assert_awaited()
+
+
+async def test_delete_parent(hass_with_coord):
+    hass, coord = hass_with_coord
+    await hass.services.async_call(DOMAIN, "delete", {
+        "entry_id": "test_entry_id", "kind": "studio", "item_id": 10, "delete_files": False,
+    }, blocking=True)
+    coord.api.delete_parent.assert_awaited_once_with("studio", 10, delete_files=False)
     coord.async_request_refresh.assert_awaited()
