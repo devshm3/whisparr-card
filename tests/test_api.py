@@ -41,7 +41,9 @@ async def test_add_scene(api):
     with aioresponses() as m:
         m.post(f"{BASE}/movie", payload={"id": 1, **payload})
         result = await api.add_scene(payload)
+        post_call = m.requests[("POST", URL(f"{BASE}/movie"))][0]
     assert result["id"] == 1
+    assert post_call.kwargs["json"] == payload
 
 
 async def test_delete_scene_passes_delete_files(api):
@@ -73,6 +75,12 @@ async def test_get_queue_unwraps_records(api):
     with aioresponses() as m:
         m.get(f"{BASE}/queue?pageSize=1000", payload={"records": [{"movieId": 1}]})
         assert await api.get_queue() == [{"movieId": 1}]
+
+
+async def test_get_queue_returns_empty_when_records_absent(api):
+    with aioresponses() as m:
+        m.get(f"{BASE}/queue?pageSize=1000", payload={})
+        assert await api.get_queue() == []
 
 
 async def test_toggle_scene_monitored_round_trips(api):
@@ -126,7 +134,10 @@ async def test_search_parents(api, kind, path):
 async def test_add_parent(api, kind, path):
     with aioresponses() as m:
         m.post(f"{BASE}/{path}", payload={"id": 5})
-        assert (await api.add_parent(kind, {"foreignId": "z"}))["id"] == 5
+        result = await api.add_parent(kind, {"foreignId": "z"})
+        post_call = m.requests[("POST", URL(f"{BASE}/{path}"))][0]
+    assert result["id"] == 5
+    assert post_call.kwargs["json"] == {"foreignId": "z"}
 
 
 @_pytest.mark.parametrize("kind,path", [("studio", "studio"), ("performer", "performer")])
@@ -134,6 +145,14 @@ async def test_delete_parent_ignores_404(api, kind, path):
     with aioresponses() as m:
         m.delete(f"{BASE}/{path}/99", status=404)
         await api.delete_parent(kind, 99)
+
+
+@_pytest.mark.parametrize("kind,path", [("studio", "studio"), ("performer", "performer")])
+async def test_delete_parent_raises_on_server_error(api, kind, path):
+    with aioresponses() as m:
+        m.delete(f"{BASE}/{path}/1", status=500)
+        with pytest.raises(aiohttp.ClientResponseError):
+            await api.delete_parent(kind, 1)
 
 
 @_pytest.mark.parametrize("kind,path", [("studio", "studio"), ("performer", "performer")])
