@@ -1,0 +1,56 @@
+add_scene:
+  name: Add Scene
+  description: Add an individual scene to Whisparr.
+  fields:
+    entry_id: {name: Entry ID, description: Config entry ID., required: true, selector: {text: }}
+    foreign_id: {name: Foreign ID, description: External scene id from the lookup result., required: true, selector: {text: }}
+    title: {name: Title, description: Scene title., required: true, selector: {text: }}
+    quality_profile_id: {name: Quality Profile ID, required: true, selector: {number: {min: 1, mode: box}}}
+    root_folder: {name: Root Folder, required: true, selector: {text: }}
+    monitored: {name: Monitored, required: false, default: true, selector: {boolean: }}
+    search_on_add: {name: Search on add, required: false, default: true, selector: {boolean: }}
+
+add_parent:
+  name: Add Studio/Performer
+  description: Add a monitored studio or performer to Whisparr.
+  fields:
+    entry_id: {name: Entry ID, required: true, selector: {text: }}
+    kind: {name: Kind, required: true, selector: {select: {options: [studio, performer]}}}
+    foreign_id: {name: Foreign ID, required: true, selector: {text: }}
+    title: {name: Title, required: true, selector: {text: }}
+    quality_profile_id: {name: Quality Profile ID, required: true, selector: {number: {min: 1, mode: box}}}
+    root_folder: {name: Root Folder, required: true, selector: {text: }}
+    monitored: {name: Monitored, required: false, default: true, selector: {boolean: }}
+    search_on_add: {name: Search on add, required: false, default: true, selector: {boolean: }}
+
+set_monitored:
+  name: Set Monitored
+  description: Set the monitored state on a scene, studio, or performer.
+  fields:
+    entry_id: {name: Entry ID, required: true, selector: {text: }}
+    kind: {name: Kind, required: true, selector: {select: {options: [scene, studio, performer]}}}
+    item_id: {name: Item ID, description: Internal Whisparr id., required: true, selector: {number: {min: 1, mode: box}}}
+    monitored: {name: Monitored, required: true, selector: {boolean: }}
+
+trigger_search:
+  name: Trigger Search
+  description: Search for a scene, or all monitored scenes in a studio/performer.
+  fields:
+    entry_id: {name: Entry ID, required: true, selector: {text: }}
+    kind: {name: Kind, required: true, selector: {select: {options: [scene, studio, performer]}}}
+    item_id: {name: Item ID, required: true, selector: {number: {min: 1, mode: box}}}
+
+delete:
+  name: Delete
+  description: Remove a scene, studio, or performer from Whisparr.
+  fields:
+    entry_id: {name: Entry ID, required: true, selector: {text: }}
+    kind: {name: Kind, required: true, selector: {select: {options: [scene, studio, performer]}}}
+    item_id: {name: Item ID, required: true, selector: {number: {min: 1, mode: box}}}
+    delete_files: {name: Delete Files, required: false, default: false, selector: {boolean: }}
+
+refresh_library:
+  name: Refresh Library
+  description: Trigger an immediate library refresh from Whisparr.
+  fields:
+    entry_id: {name: Entry ID, required: true, selector: {text: }}
