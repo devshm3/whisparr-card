@@ -1,0 +1,17 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Whisparr",
+        "data": {
+          "host": "Whisparr URL",
+          "api_key": "API Key",
+          "name": "Display Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect. Check the URL and API key."
+    }
+  }
+}
