@@ -197,6 +197,10 @@ export class WhisparrParentDetail extends LitElement {
   }
 
   protected willUpdate(changed: PropertyValues): void {
+    if (changed.has('scenes')) {
+      // Scenes prop refreshed: clear stale optimistic toggles since incoming scenes are authoritative.
+      this._optimisticScenes = {};
+    }
     if (!changed.has('parent')) return;
     const prev = changed.get('parent') as Parent | undefined;
     const sameParent = prev != null && this.parent != null && prev.id === this.parent.id;
