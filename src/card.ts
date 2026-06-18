@@ -284,6 +284,7 @@ export class WhisparrHacsCard extends LitElement {
     this._parentScenes = [];
     this._filteredParents = [];
     this._sort = this._config.default_sort ?? 'added';
+    this._activeFilter = this._config.default_filter ?? 'all';
     this._loadData();
   }
 
@@ -410,9 +411,19 @@ export class WhisparrHacsCard extends LitElement {
   private async _onDialogParentPosterClick(parent: Parent): Promise<void> {
     if (this._dialogSelectedParent?.id === parent.id) {
       this._dialogSelectedParent = undefined;
+      this._parentScenes = [];
       return;
     }
     this._dialogSelectedParent = parent;
+    this._parentScenes = [];
+    this._parentLoading = true;
+    try {
+      this._parentScenes = await getParentScenes(
+        this.hass, this._config.entry_id, this._activeKind, parent.id
+      );
+    } finally {
+      this._parentLoading = false;
+    }
   }
 
   // ---- scene events ----
