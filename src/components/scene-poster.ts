@@ -167,7 +167,7 @@ export class WhisparrScenePoster extends LitElement {
 
         <span class="monitored-dot ${this.scene.monitored ? 'monitored' : 'unmonitored'}"></span>
 
-        ${this.showBadge ? html`
+        ${this.showBadge && this.scene.inLibrary !== false ? html`
           <span class="badge ${status}">${badgeLabel}</span>
         ` : nothing}
 
