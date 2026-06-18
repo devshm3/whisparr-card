@@ -42,10 +42,12 @@ def _parent_name(parent: dict, kind: str) -> str:
 
 def _enrich_scene(scene: dict, queue_map: dict) -> dict:
     sid = scene["id"]
+    monitored = bool(scene.get("monitored", True))
     enriched = {
         **scene,
+        "monitored": monitored,
         "inQueue": sid in queue_map,
-        "available": bool(scene.get("hasFile")) and bool(scene.get("monitored", True)),
+        "available": bool(scene.get("hasFile")) and monitored,
     }
     if sid in queue_map:
         q = queue_map[sid]
@@ -65,7 +67,7 @@ def _apply_scene_query(scenes: list, search: str, filter_val, sort: str) -> list
         s = search.lower()
         out = [m for m in out if s in m.get("title", "").lower()]
     if filter_val == "available":
-        out = [m for m in out if m.get("hasFile")]
+        out = [m for m in out if m.get("available")]
     elif filter_val == "missing":
         out = [m for m in out if not m.get("hasFile") and m.get("monitored")]
     elif filter_val == "downloading":

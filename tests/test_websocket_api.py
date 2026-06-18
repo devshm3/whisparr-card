@@ -84,6 +84,14 @@ async def test_ws_get_scenes_returns_enriched_sorted(hass):
     assert [s["id"] for s in sent["scenes"]] == [1, 2]  # added 06-12 before 06-08
 
 
+def test_apply_scene_query_available_excludes_unmonitored_with_file():
+    unmon = wsa._enrich_scene({"id": 9, "title": "X", "hasFile": True, "monitored": False, "added": "2026-01-01T00:00:00Z"}, {})
+    have = wsa._enrich_scene(MOCK_SCENE, {})
+    pool = [unmon, have]
+    assert [s["id"] for s in wsa._apply_scene_query(pool, "", "available", "added")] == [1]
+    assert [s["id"] for s in wsa._apply_scene_query(pool, "", "unmonitored", "added")] == [9]
+
+
 async def test_ws_get_parents_counts_members(hass):
     hass.data[wsa.DOMAIN] = {"test_entry_id": _coord_with_data()}
     sent = {}
