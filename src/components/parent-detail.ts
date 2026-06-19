@@ -24,6 +24,8 @@ export class WhisparrParentDetail extends LitElement {
   // Optimistic monitored state so toggles flip instantly before the round-trip.
   @state() private _optimisticParent?: boolean;
   @state() private _optimisticScenes: Record<number, boolean> = {};
+  // Which release-year groups are expanded in the scene list.
+  @state() private _expandedYears: Record<string, boolean> = {};
 
   static styles = css`
     :host {
@@ -92,7 +94,40 @@ export class WhisparrParentDetail extends LitElement {
     button.action.danger:hover { background: rgba(244,67,54,0.12); }
 
     /* Scene rows */
-    .scenes { grid-column: 1 / -1; margin-top: 4px; }
+    .scenes { grid-column: 1 / -1; margin-top: 4px; max-height: 60vh; overflow-y: auto; }
+
+    /* Year accordion */
+    .year-group { border-bottom: 1px solid var(--rc-outline, rgba(255,255,255,0.08)); }
+    .year-header {
+      align-items: center;
+      background: none;
+      border: none;
+      color: var(--rc-text, var(--primary-text-color));
+      cursor: pointer;
+      display: flex;
+      font-size: 0.92rem;
+      font-weight: 600;
+      gap: 8px;
+      padding: 10px 2px;
+      text-align: left;
+      width: 100%;
+    }
+    .year-header:hover { background: color-mix(in srgb, var(--rc-text, #fff) 6%, transparent); }
+    .year-caret {
+      color: var(--rc-text-secondary, var(--secondary-text-color));
+      display: inline-block;
+      font-size: 0.8rem;
+      transition: transform 0.15s;
+    }
+    .year-caret.open { transform: rotate(90deg); }
+    .year-count {
+      color: var(--rc-text-secondary, var(--secondary-text-color));
+      font-size: 0.75rem;
+      font-weight: 400;
+      margin-left: auto;
+    }
+    .year-scenes { padding-left: 8px; }
+    .year-scenes .scene-row:last-child { border-bottom: none; }
     .loading-line {
       color: var(--rc-text-secondary, var(--secondary-text-color));
       font-size: 0.85rem;
@@ -214,6 +249,7 @@ export class WhisparrParentDetail extends LitElement {
     // Different parent: reset all transient state.
     this._optimisticParent = undefined;
     this._optimisticScenes = {};
+    this._expandedYears = {};
     this._confirmDelete = false;
     this._addError = undefined;
     this._adding = false;
@@ -319,36 +355,89 @@ export class WhisparrParentDetail extends LitElement {
     `;
   }
 
+  /** Release year for a scene, or null when unknown. */
+  private _sceneYear(scene: Scene): number | null {
+    const d = scene.releaseDate ?? scene.digitalRelease;
+    if (d) {
+      const y = Number(d.slice(0, 4));
+      if (y) return y;
+    }
+    return scene.year ?? null;
+  }
+
+  /** Scenes grouped by year, newest first; unknown-year scenes last. */
+  private get _scenesByYear(): Array<[string, Scene[]]> {
+    const groups = new Map<string, Scene[]>();
+    for (const s of this.scenes) {
+      const y = this._sceneYear(s);
+      const key = y != null ? String(y) : 'Unknown';
+      const bucket = groups.get(key);
+      if (bucket) bucket.push(s);
+      else groups.set(key, [s]);
+    }
+    return [...groups.entries()].sort((a, b) => {
+      if (a[0] === 'Unknown') return 1;
+      if (b[0] === 'Unknown') return -1;
+      return Number(b[0]) - Number(a[0]);
+    });
+  }
+
+  private _toggleYear(year: string) {
+    this._expandedYears = { ...this._expandedYears, [year]: !this._expandedYears[year] };
+  }
+
   private _renderScenes() {
+    if (!this.loading && this.scenes.length === 0) {
+      return html`<div class="scenes"><div class="loading-line">No scenes</div></div>`;
+    }
     return html`
       <div class="scenes">
         ${this.loading ? html`<div class="loading-line">Loading…</div>` : nothing}
-        ${this.scenes.map(scene => {
-          const monitored = this._optimisticScenes[scene.id] ?? scene.monitored;
-          const thumb = this._sceneThumb(scene);
-          const sub = this._sceneSubLine(scene);
-          const pill = this._scenePill(scene);
+        ${this._scenesByYear.map(([year, scenes]) => {
+          const expanded = this._expandedYears[year] ?? false;
+          const downloaded = scenes.filter(s => s.hasFile).length;
           return html`
-            <div class="scene-row">
-              <div class="scene-thumb">
-                ${thumb
-                  ? html`<img src=${thumb} alt=${scene.title} loading="lazy" />`
-                  : html`<div class="scene-thumb-placeholder"></div>`}
-              </div>
-              <div class="scene-info">
-                <div class="scene-title">${scene.title}</div>
-                <div class="scene-sub">${sub}</div>
-              </div>
-              <span class="pill ${pill.cls}">${pill.label}</span>
-              <button
-                class="toggle ${monitored ? 'on' : ''}"
-                title="Toggle monitored"
-                @click=${() => this._toggleScene(scene)}
-              ></button>
-              <button class="icon-btn" title="Search scene" @click=${() => this._searchScene(scene)}>⌕</button>
+            <div class="year-group">
+              <button class="year-header" @click=${() => this._toggleYear(year)}>
+                <span class="year-caret ${expanded ? 'open' : ''}">▸</span>
+                <span class="year-label">${year}</span>
+                <span class="year-count">
+                  ${scenes.length} ${scenes.length === 1 ? 'scene' : 'scenes'} · ${downloaded} downloaded
+                </span>
+              </button>
+              ${expanded
+                ? html`<div class="year-scenes">${scenes.map(s => this._renderSceneRow(s))}</div>`
+                : nothing}
             </div>
           `;
         })}
+      </div>
+    `;
+  }
+
+  private _renderSceneRow(scene: Scene) {
+    const monitored = this._optimisticScenes[scene.id] ?? scene.monitored;
+    const thumb = this._sceneThumb(scene);
+    const sub = this._sceneSubLine(scene);
+    const pill = this._scenePill(scene);
+    return html`
+      <div class="scene-row">
+        <div class="scene-thumb">
+          ${thumb
+            ? html`<img src=${thumb} alt=${scene.title} loading="lazy" />`
+            : html`<div class="scene-thumb-placeholder"></div>`}
+        </div>
+        <div class="scene-info">
+          <div class="scene-title">${scene.title}</div>
+          <div class="scene-sub">${sub}</div>
+        </div>
+        <span class="pill ${pill.cls}">${pill.label}</span>
+        <button
+          class="toggle ${monitored ? 'on' : ''}"
+          title="Toggle monitored"
+          @click=${() => this._toggleScene(scene)}
+        ></button>
+        <button class="icon-btn" title="Search scene" @click=${() => this._searchScene(scene)}>⌕</button>
       </div>
     `;
   }

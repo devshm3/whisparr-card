@@ -138,7 +138,8 @@ async def ws_get_scenes(hass, connection, msg) -> None:
     vol.Required("entry_id"): str,
     vol.Required("kind"): vol.In(PARENT_KINDS),
     vol.Optional("search"): str,
-    vol.Optional("sort"): vol.In(["title", "added"]),
+    # "released" is scene-only; accept it so a card default doesn't error — it falls through to "added".
+    vol.Optional("sort"): vol.In(["title", "added", "released"]),
 })
 @websocket_api.async_response
 async def ws_get_parents(hass, connection, msg) -> None:

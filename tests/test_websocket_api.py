@@ -101,3 +101,15 @@ async def test_ws_get_parents_counts_members(hass):
     assert sent["parents"][0]["sceneCount"] == 2
     assert sent["parents"][0]["missingCount"] == 1
     assert sent["parents"][0]["displayName"] == "Vixen"
+
+
+async def test_ws_get_parents_tolerates_released_sort(hass):
+    # "released" is scene-only; parents must not error on it — the schema accepts it
+    # and _build_parents_result falls through to the default "added" sort.
+    assert "released" in wsa.ws_get_parents._ws_schema.schema["sort"].container
+    hass.data[wsa.DOMAIN] = {"test_entry_id": _coord_with_data()}
+    sent = {}
+    conn = MagicMock()
+    conn.send_result.side_effect = lambda _id, payload: sent.update(payload)
+    await ws_get_parents_unwrapped(hass, conn, _msg(kind="studio", sort="released"))
+    assert "parents" in sent

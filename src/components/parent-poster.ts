@@ -35,6 +35,8 @@ export class WhisparrParentPoster extends LitElement {
       background: var(--rc-surface-container, rgba(255, 255, 255, 0.04));
       display: block; height: 100%; object-fit: cover; width: 100%;
     }
+    /* studio art is a logo — show the whole thing, never crop it */
+    .wrap.studio img { object-fit: contain; padding: 8px; box-sizing: border-box; }
 
     .placeholder {
       align-items: center;

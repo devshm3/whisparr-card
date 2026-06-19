@@ -95,8 +95,17 @@ export class WhisparrHacsCard extends LitElement {
       ...config,
     };
     this._view = this._config.default_view ?? 'scenes';
-    this._sort = this._config.default_sort ?? 'added';
+    this._sort = this._clampSort(this._config.default_sort ?? 'added', this._view);
     this._activeFilter = this._config.default_filter ?? 'all';
+  }
+
+  /** Sorts each view supports. 'released' only applies to scenes (parents have no release date). */
+  private _availableSorts(view: View): string[] {
+    return view === 'scenes' ? ['added', 'released', 'title'] : ['added', 'title'];
+  }
+
+  private _clampSort(sort: string, view: View): string {
+    return this._availableSorts(view).includes(sort) ? sort : 'added';
   }
 
   public getCardSize(): number {
@@ -283,7 +292,7 @@ export class WhisparrHacsCard extends LitElement {
     this._dialogSelectedParent = undefined;
     this._parentScenes = [];
     this._filteredParents = [];
-    this._sort = this._config.default_sort ?? 'added';
+    this._sort = this._clampSort(this._config.default_sort ?? 'added', view);
     this._activeFilter = this._config.default_filter ?? 'all';
     this._loadData();
   }
@@ -566,9 +575,8 @@ export class WhisparrHacsCard extends LitElement {
   // ---- render helpers ----
 
   private _renderSortControl() {
-    const sorts = this._view === 'scenes'
-      ? [['added', 'Added'], ['released', 'Released'], ['title', 'Title']]
-      : [['added', 'Added'], ['title', 'Title']];
+    const labels: Record<string, string> = { added: 'Added', released: 'Released', title: 'Title' };
+    const sorts = this._availableSorts(this._view).map(v => [v, labels[v]]);
     return html`
       <div style="display:flex;gap:4px;padding:4px 16px 0;flex-wrap:wrap">
         ${sorts.map(([val, label]) => html`
