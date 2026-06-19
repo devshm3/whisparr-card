@@ -41,13 +41,15 @@ export class WhisparrSceneDetail extends LitElement {
       padding: 16px;
     }
     .poster img {
+      aspect-ratio: 16 / 9;
       border-radius: 8px;
       display: block;
-      width: 120px;
+      object-fit: cover;
+      width: 200px;
     }
     .poster-placeholder {
       align-items: center;
-      aspect-ratio: 2 / 3;
+      aspect-ratio: 16 / 9;
       background: var(--rc-surface-container, rgba(255,255,255,0.05));
       border-radius: 8px;
       color: var(--secondary-text-color);
@@ -58,7 +60,7 @@ export class WhisparrSceneDetail extends LitElement {
       justify-content: center;
       padding: 8px;
       text-align: center;
-      width: 120px;
+      width: 200px;
     }
     h2 { font-size: 1.15rem; margin: 0 0 4px; color: var(--rc-text, var(--primary-text-color)); }
     .meta { color: var(--rc-text-secondary, var(--secondary-text-color)); font-size: 0.82rem; line-height: 1.6; }
@@ -142,7 +144,13 @@ export class WhisparrSceneDetail extends LitElement {
   `;
 
   private get _poster(): string {
-    return this.scene?.images?.find(i => i.coverType === 'poster')?.remoteUrl ?? '';
+    return (
+      this.scene?.images?.find(
+        i => i.coverType === 'screenshot' || i.coverType === 'fanart' || i.coverType === 'poster',
+      )?.remoteUrl ??
+      this.scene?.images?.[0]?.remoteUrl ??
+      ''
+    );
   }
 
   private get _showAddForm(): boolean {

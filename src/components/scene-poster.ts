@@ -75,16 +75,6 @@ export class WhisparrScenePoster extends LitElement {
     .badge.missing      { background: #f57c00; color: #fff; }
     .badge.downloading  { background: #1e88e5; color: #fff; }
     .badge.unmonitored  { background: #757575; color: #fff; }
-    .monitored-dot {
-      border-radius: 50%;
-      height: 8px;
-      left: 6px;
-      position: absolute;
-      top: 6px;
-      width: 8px;
-    }
-    .monitored-dot.monitored   { background: var(--rc-accent, var(--primary-color)); }
-    .monitored-dot.unmonitored { background: rgba(255,255,255,0.3); }
     .footer {
       background: linear-gradient(transparent, rgba(0,0,0,0.7));
       bottom: 0;
@@ -143,11 +133,7 @@ export class WhisparrScenePoster extends LitElement {
   render() {
     const status = sceneStatus(this.scene);
     const dateStr = _release(this.scene).slice(0, 10);
-    const badgeLabel =
-      status === 'available'   ? 'FILE'      :
-      status === 'missing'     ? 'MISSING'   :
-      status === 'downloading' ? `${this._downloadPct}%` :
-                                 'UNMONITORED';
+    const badgeLabel = status === 'downloading' ? `${this._downloadPct}%` : status;
 
     return html`
       <div
@@ -164,8 +150,6 @@ export class WhisparrScenePoster extends LitElement {
               <span>${this.scene.title}</span>
               ${this.scene.year ? html`<span>(${this.scene.year})</span>` : nothing}
             </div>`}
-
-        <span class="monitored-dot ${this.scene.monitored ? 'monitored' : 'unmonitored'}"></span>
 
         ${this.showBadge && this.scene.inLibrary !== false ? html`
           <span class="badge ${status}">${badgeLabel}</span>

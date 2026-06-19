@@ -16,7 +16,7 @@ from . import services, websocket_api
 
 _LOGGER = logging.getLogger(__name__)
 # bump on every rebuilt-card ship so browsers fetch fresh JS
-_CARD_VERSION = "1"
+_CARD_VERSION = "2"
 _CARD_BASE_URL = f"/{DOMAIN}/whisparr-hacs-card.js"
 _CARD_URL = f"{_CARD_BASE_URL}?v={_CARD_VERSION}"
 
