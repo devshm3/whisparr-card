@@ -110,6 +110,11 @@ async def _build_parents_result(coordinator, msg):
     search = msg.get("search", "").lower()
     if search:
         parents = [p for p in parents if search in p["displayName"].lower()]
+    # performer-only: hide performers whose gender doesn't match the requested one.
+    # "Other"/unknown/missing gender is shown only under "all".
+    gender = msg.get("gender")
+    if kind == "performer" and gender in ("female", "male"):
+        parents = [p for p in parents if str(p.get("gender", "")).lower() == gender]
     if msg.get("sort", "added") == "title":
         parents = sorted(parents, key=lambda p: p["displayName"].lower())
     else:
@@ -140,6 +145,8 @@ async def ws_get_scenes(hass, connection, msg) -> None:
     vol.Optional("search"): str,
     # "released" is scene-only; accept it so a card default doesn't error — it falls through to "added".
     vol.Optional("sort"): vol.In(["title", "added", "released"]),
+    # performer-only display filter; ignored for studios.
+    vol.Optional("gender"): vol.In(["all", "female", "male"]),
 })
 @websocket_api.async_response
 async def ws_get_parents(hass, connection, msg) -> None:

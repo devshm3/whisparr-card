@@ -15,11 +15,12 @@ export async function getScenes(hass: HomeAssistant, entryId: string, opts: Scen
 }
 
 export async function getParents(
-  hass: HomeAssistant, entryId: string, kind: ParentKind, opts: { sort?: string; search?: string } = {}
+  hass: HomeAssistant, entryId: string, kind: ParentKind, opts: { sort?: string; search?: string; gender?: string } = {}
 ): Promise<Parent[]> {
   const msg: Record<string, unknown> = { type: `${DOMAIN}/get_parents`, entry_id: entryId, kind };
   if (opts.sort) msg['sort'] = opts.sort;
   if (opts.search) msg['search'] = opts.search;
+  if (opts.gender && opts.gender !== 'all') msg['gender'] = opts.gender;
   const resp = await hass.connection.sendMessagePromise<{ parents: Parent[] }>(msg);
   return resp.parents;
 }

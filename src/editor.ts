@@ -122,6 +122,13 @@ export class WhisparrHacsCardEditor extends LitElement {
           <input type="number" min="0" max="24" .value=${String(c.poster_radius ?? 8)}
             @change=${(e: Event) => this._fire({ poster_radius: Number((e.target as HTMLInputElement).value) })} />
         </div>
+        <div class="field">
+          <label>Performers to show</label>
+          <select @change=${this._str('performer_gender')}>
+            ${([['all', 'All genders'], ['female', 'Female only'], ['male', 'Male only']] as const).map(([v, label]) => html`
+              <option value=${v} ?selected=${(c.performer_gender ?? 'all') === v}>${label}</option>`)}
+          </select>
+        </div>
         ${this._checkbox('Show Studios Tab', 'show_studios_tab')}
         ${this._checkbox('Show Performers Tab', 'show_performers_tab')}
         ${this._checkbox('Show Status Badges', 'show_status_badges')}

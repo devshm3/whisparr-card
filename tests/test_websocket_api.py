@@ -113,3 +113,55 @@ async def test_ws_get_parents_tolerates_released_sort(hass):
     conn.send_result.side_effect = lambda _id, payload: sent.update(payload)
     await ws_get_parents_unwrapped(hass, conn, _msg(kind="studio", sort="released"))
     assert "parents" in sent
+
+
+# --- performer gender filter ---
+
+_PERF_FEMALE = {"id": 20, "fullName": "Jane", "foreignId": "p-f", "monitored": True, "added": "2026-02-01T00:00:00Z", "gender": "Female", "images": []}
+_PERF_MALE = {"id": 21, "fullName": "John", "foreignId": "p-m", "monitored": True, "added": "2026-02-02T00:00:00Z", "gender": "Male", "images": []}
+_PERF_OTHER = {"id": 22, "fullName": "Sam", "foreignId": "p-o", "monitored": True, "added": "2026-02-03T00:00:00Z", "gender": "Other", "images": []}
+_PERF_NONE = {"id": 23, "fullName": "Pat", "foreignId": "p-n", "monitored": True, "added": "2026-02-04T00:00:00Z", "images": []}
+
+
+def _coord_with_performers():
+    coord = MagicMock()
+    coord.data = {
+        "scenes": [],
+        "studios": [MOCK_STUDIO],
+        "performers": [_PERF_FEMALE, _PERF_MALE, _PERF_OTHER, _PERF_NONE],
+        "queue": [],
+        "quality_profiles": [],
+        "root_folders": [],
+    }
+    coord.api = AsyncMock()
+    return coord
+
+
+async def _parent_ids(hass, **msg_kw):
+    hass.data[wsa.DOMAIN] = {"test_entry_id": _coord_with_performers()}
+    sent = {}
+    conn = MagicMock()
+    conn.send_result.side_effect = lambda _id, payload: sent.update(payload)
+    await ws_get_parents_unwrapped(hass, conn, _msg(**msg_kw))
+    return {p["id"] for p in sent["parents"]}
+
+
+async def test_gender_female_shows_only_female(hass):
+    assert await _parent_ids(hass, kind="performer", gender="female") == {20}
+
+
+async def test_gender_male_shows_only_male(hass):
+    assert await _parent_ids(hass, kind="performer", gender="male") == {21}
+
+
+async def test_gender_all_shows_everyone(hass):
+    assert await _parent_ids(hass, kind="performer", gender="all") == {20, 21, 22, 23}
+
+
+async def test_gender_omitted_shows_everyone(hass):
+    assert await _parent_ids(hass, kind="performer") == {20, 21, 22, 23}
+
+
+async def test_gender_filter_ignored_for_studios(hass):
+    # gender is a performer-only concept; passing it on a studio query must not drop studios.
+    assert await _parent_ids(hass, kind="studio", gender="male") == {10}

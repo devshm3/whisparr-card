@@ -69,7 +69,7 @@ MOCK_STUDIO = {
 }
 MOCK_PERFORMER = {
     "id": 20, "fullName": "Jane Doe", "foreignId": "perf-jane",
-    "monitored": True, "added": "2026-02-01T00:00:00Z",
+    "monitored": True, "added": "2026-02-01T00:00:00Z", "gender": "Female",
     "images": [{"coverType": "headshot", "remoteUrl": "http://img/jane.jpg"}],
 }
 MOCK_QUALITY_PROFILE = {"id": 1, "name": "HD-1080p"}

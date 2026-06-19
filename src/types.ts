@@ -42,6 +42,7 @@ export interface Parent {
   fullName?: string;
   monitored: boolean;
   added?: string;
+  gender?: string;
   images?: MediaImage[];
   // enriched by the backend get_parents
   displayName?: string;
@@ -61,6 +62,7 @@ export interface CardConfig {
   columns?: number;            // clamped to [2,3] at use
   default_sort?: 'added' | 'released' | 'title';
   default_filter?: string;
+  performer_gender?: 'all' | 'female' | 'male';
   show_status_badges?: boolean;
   poster_radius?: number;
   card_title?: string;

@@ -85,6 +85,7 @@ export class WhisparrHacsCard extends LitElement {
       columns: 2,
       default_sort: 'added',
       default_filter: 'all',
+      performer_gender: 'all',
       show_status_badges: true,
       poster_radius: 8,
       page_size: 25,
@@ -251,7 +252,8 @@ export class WhisparrHacsCard extends LitElement {
     const prevDialogId   = preserveSelection ? this._dialogSelectedParent?.id : undefined;
 
     const kind = this._activeKind;
-    const parents = await getParents(this.hass, this._config.entry_id, kind, { sort: this._sort });
+    const gender = kind === 'performer' ? this._config.performer_gender : undefined;
+    const parents = await getParents(this.hass, this._config.entry_id, kind, { sort: this._sort, gender });
     this._parents = parents;
     if (!this._isRemoteView) {
       this._filteredParents = parents;
